@@ -13,27 +13,26 @@ const port = 3001
 
 const app = express();
 
-// @see https://expressjs.com/en/resources/middleware/cors.html
+// Cors
 const corsOptions = {
   origin: '*',
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+  optionsSuccessStatus: 200
 }
 
 // Middleware
 app.use(cors(corsOptions))
-app.use(powered)
 app.use(auth)
+app.use(errorHandler);
 
+
+// Routes
 app.use('/api', apiRoutes);
-
 app.get('/protected', (req, res) => {
   res.json({message: 'Tu es authentifié', user: req.user});
 });
-
-// Error handling middleware
-app.use(errorHandler);
 app.use(router)
 
+// App Start
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 })
