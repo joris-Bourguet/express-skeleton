@@ -1,15 +1,22 @@
 require('./config/env');
 
+// --------------IMPORTS-----------------
+//packages
 const express = require('express')
 const cors = require('cors')
+const Listr = require("listr");
+//routeur
 const router = express.Router();
-
-const errorHandler = require('./middlewares/errorHandler');
+// middleware
 const auth = require('./middlewares/auth');
-
+const errorHandler = require('./middlewares/errorHandler');
+//services
+const dbService = require('./services/DbService');
+//routes
 const apiRoutes = require('./routes/api');
-
+//init
 const port = 3001
+// --------------IMPORTS-----------------
 
 const app = express();
 
@@ -32,7 +39,26 @@ app.get('/protected', (req, res) => {
 });
 app.use(router)
 
+// Init
+const initializeMongoClient = () => {
+  dbService.getClient()
+    .then(() => dbService.autoLoadModels())
+    .catch(err => {
+      console.error('Failed to initialize database');
+    })
+  ;
+}
+
 // App Start
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+app.listen(port, async () => {
+  const tasks = new Listr([
+    {
+      title: "Initialize Mongo Client",
+      task: () => initializeMongoClient(),
+    },
+  ]);
+
+  await tasks.run()
+
+  console.log(`Server running on http://localhost:${port}`)
 })
